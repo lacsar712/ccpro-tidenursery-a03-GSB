@@ -5,6 +5,7 @@ from app.database import SessionLocal
 from app.models.feed_event import FeedEvent
 from app.models.hatchery import Hatchery
 from app.models.pond import Pond
+from app.models.salinity_step import SalinityStep
 from app.models.user import User
 from app.models.water_sample import WaterSample
 
@@ -126,6 +127,22 @@ def seed() -> None:
                         feed_type="微藻饲料",
                         amount_kg=2.5,
                         operator_name="水质技术员",
+                    ),
+                    # A-02 隔离塘盐度驯化：第 1 阶已完成
+                    # （上方 now-5h、盐度 30.0 的水样即落在计划时刻 ±2h 内），第 2 阶待完成
+                    SalinityStep(
+                        pond_id=p2.id,
+                        step_no=1,
+                        target_salinity_ppt=30.0,
+                        planned_at=now - timedelta(hours=5),
+                        completed_at=now - timedelta(hours=4, minutes=50),
+                    ),
+                    SalinityStep(
+                        pond_id=p2.id,
+                        step_no=2,
+                        target_salinity_ppt=25.0,
+                        planned_at=now + timedelta(hours=6),
+                        completed_at=None,
                     ),
                 ]
             )

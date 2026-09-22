@@ -8,6 +8,7 @@ from app.auth import get_current_user
 from app.database import get_db
 from app.models.hatchery import Hatchery
 from app.models.pond import Pond
+from app.models.salinity_step import SalinityStep
 from app.models.user import User
 from app.schemas.pond import PondCreate, PondUpdate, PondOut
 
@@ -88,6 +89,35 @@ def update_pond(
         raise HTTPException(status_code=400, detail="同场塘口号已存在")
     db.refresh(item)
     return item
+
+
+@router.post("/{pond_id}/stock", response_model=PondOut)
+def stock_pond(
+    pond_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """隔离塘完成全部盐度驯化阶梯后放养，状态置为在养(stocked)。"""
+    pond = db.query(Pond).filter(Pond.id == pond_id).first()
+    if not pond:
+        raise HTTPException(status_code=404, detail="塘口不存在")
+    if pond.status != "quarantine":
+        raise HTTPException(status_code=409, detail="仅隔离状态塘口可在驯化完成后放养")
+
+    steps = db.query(SalinityStep).filter(SalinityStep.pond_id == pond_id).all()
+    if not steps:
+        raise HTTPException(status_code=409, detail="该塘口尚无盐度驯化阶梯，无法放养")
+    pending = [s for s in steps if s.completed_at is None]
+    if pending:
+        raise HTTPException(
+            status_code=409,
+            detail=f"仍有 {len(pending)} 条盐度驯化阶梯未完成，无法放养",
+        )
+
+    pond.status = "stocked"
+    db.commit()
+    db.refresh(pond)
+    return pond
 
 
 @router.delete("/{pond_id}", status_code=status.HTTP_204_NO_CONTENT)

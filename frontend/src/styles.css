@@ -278,6 +278,34 @@ th {
   color: #1a7a6c;
 }
 
+.info {
+  background: #e6f6f8;
+  color: var(--sea-deep);
+  border: 1px solid #bfe6ec;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 12px 0;
+}
+
+.stock-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.stock-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-width: 280px;
+  flex: 1;
+}
+
 .login-page {
   min-height: 100vh;
   display: grid;

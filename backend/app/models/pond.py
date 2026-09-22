@@ -24,3 +24,9 @@ class Pond(Base):
     feed_events: Mapped[List["FeedEvent"]] = relationship(
         "FeedEvent", back_populates="pond", cascade="all, delete-orphan"
     )
+    salinity_steps: Mapped[List["SalinityStep"]] = relationship(
+        "SalinityStep",
+        back_populates="pond",
+        cascade="all, delete-orphan",
+        order_by="SalinityStep.step_no",
+    )

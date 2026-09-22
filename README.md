@@ -46,11 +46,19 @@ docker compose up --build
 3. **Pond 育苗塘**：`hatcheryId`、`pondCode`、`species`、`volumeM3`、`status(stocked|dry|quarantine)`；同场 `pondCode` 唯一
 4. **WaterSample 水质样**：`pondId`、`sampledAt`、`tempC`、`salinityPpt`、`doMgL`、`ph`、`notes`；`doMgL > 0` 且 `ph ∈ [6,9]`，否则返回 **400**
 5. **FeedEvent 投喂**：`pondId`、`fedAt`、`feedType`、`amountKg`、`operatorName`
-6. **Dashboard**：塘总数、quarantine 数、近 24h 采样数、近 7 日投喂总量 kg
+6. **SalinityStep 盐度驯化阶梯**（挂隔离塘口，逐步改盐并以水质样校验）：
+   - 字段：`pondId` 所属塘口、`stepNo` 阶梯序号（从 1 起，同塘唯一）、`targetSalinityPpt` 目标盐度、`plannedAt` 计划时刻、`completedAt` 完成时刻（可空）
+   - **建阶梯**：仅 `quarantine` 隔离状态塘口可建；在养 `stocked` 与干塘 `dry` 返回 **409**
+   - **完成阶梯** `POST /api/salinity-steps/{id}/complete`：写入完成时刻；要求该塘在**计划时刻前后 2 小时内**存在一条水质样，且其 `salinityPpt` 与目标盐度**绝对差不超过 1**，否则返回 **400**（中文错误，提示先补登达标水质样）
+   - **顺序约束**：存在未完成的更低序号阶梯时，禁止完成更高序号，返回 **409**
+   - **放养** `POST /api/ponds/{id}/stock`：全部阶梯完成后可把塘口状态改为 `stocked`；无阶梯或仍有未完成阶梯返回 **409**
+7. **Dashboard**：塘总数、quarantine 数、近 24h 采样数、近 7 日投喂总量 kg
+
+> 驯化阶梯不是与水质样脱钩的空计划表：每完成一阶都必须由计划时刻 ±2h 内盐度达标（误差 ≤1 ppt）的水质样佐证。种子数据中 A-02 隔离塘预置两阶：第 1 阶（30 ppt）已完成，第 2 阶（25 ppt）待完成——在「水质样」页为 A-02 补登一条计划时刻附近、盐度约 25 ppt 的水样后即可完成第 2 阶并放养。
 
 ## 前端页面
 
-Login · Dashboard · Hatcheries · Ponds · WaterSamples · FeedEvents
+Login · Dashboard · Hatcheries · Ponds · WaterSamples · FeedEvents · SalinityAcclimation（盐度驯化）
 
 ## 本地开发（可选）
 

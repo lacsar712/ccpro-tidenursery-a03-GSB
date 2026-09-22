@@ -41,6 +41,15 @@ export type FeedEvent = {
   operatorName: string
 }
 
+export type SalinityStep = {
+  id: number
+  pondId: number
+  stepNo: number
+  targetSalinityPpt: number
+  plannedAt: string
+  completedAt?: string | null
+}
+
 export type DashboardStats = {
   pondTotal: number
   quarantineCount: number

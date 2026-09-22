@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.auth import hash_password
 from app.database import SessionLocal
+from app.models.acclimation_step import AcclimationStep
 from app.models.feed_event import FeedEvent
 from app.models.hatchery import Hatchery
 from app.models.pond import Pond
@@ -126,6 +127,23 @@ def seed() -> None:
                         feed_type="微藻饲料",
                         amount_kg=2.5,
                         operator_name="水质技术员",
+                    ),
+                    # 隔离塘 A-02 的盐度驯化阶梯：
+                    # 第 1 阶目标 30ppt，计划于 5 小时前，已由同刻盐度 30 的水质样确认完成；
+                    # 第 2 阶目标 25ppt，计划于明天，尚未完成，待水质样达标后完成再放养。
+                    AcclimationStep(
+                        pond_id=p2.id,
+                        step_order=1,
+                        target_salinity_ppt=30.0,
+                        planned_at=now - timedelta(hours=5),
+                        completed_at=now - timedelta(hours=4),
+                    ),
+                    AcclimationStep(
+                        pond_id=p2.id,
+                        step_order=2,
+                        target_salinity_ppt=25.0,
+                        planned_at=now + timedelta(days=1),
+                        completed_at=None,
                     ),
                 ]
             )
